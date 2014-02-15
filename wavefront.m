@@ -3,16 +3,34 @@ function [value_map, trajectory] = wavefront(map, start_row, start_column)
 %   Uses 8-point connectivity.
 
     MAP_GOAL_VALUE = 2; % GOAL VALUE SET TO: 2
-
+    
     value_map = buildValueMap(map, MAP_GOAL_VALUE);
     
     trajectory = buildTrajectory(value_map, start_row, start_column, MAP_GOAL_VALUE);
+    
+    displayWavefront(map, trajectory);
 
 end
 
-%%% BUILD WAVEFRONT VALUE MAP FUNCTIONS
+function displayWavefront(map, trajectory)
+    
+    map = mat2gray(map);
+    
+    [tr ~] = size(trajectory);
+    
+    for ii = 1 : tr
+        map(trajectory(ii, 1), trajectory(ii, 2)) = 2;
+    end
+    
+    imagesc(map);
+    
+end
+
+%% BUILD WAVEFRONT VALUE MAP FUNCTIONS
 
 function value_map = buildValueMap(map, goalValue)
+
+    tic;
 
     [goalX, goalY] = findValueMapGoalPosition(map, goalValue);
 
@@ -21,7 +39,6 @@ function value_map = buildValueMap(map, goalValue)
 
     % initiating 8-neighbor list
     map = add8NeighborToList(neighborList, goalX, goalY, goalValue, map);
-    
     while ~neighborList.isEmpty()
         neighborData = neighborList.pop(); % or poll(), removeFirst(), remove(), pollFirst()
         % neighborData(1): x coordinate
@@ -31,6 +48,10 @@ function value_map = buildValueMap(map, goalValue)
     end
     
     value_map = map;
+    
+    display('Building Value Map Finished:');
+    
+    toc;
     
 end
 
@@ -104,9 +125,11 @@ function [changedMap] = addNeighborToList(neighborList, neighborX, neighborY, cu
 
 end
 
-%%% BUILD TRAJECTORY FUNCTIONS
+%% BUILD TRAJECTORY FUNCTIONS
 
 function [trajectory] = buildTrajectory(value_map, start_row, start_column, goalValue)
+
+    tic;
     
     [goalX, goalY] = findValueMapGoalPosition(value_map, goalValue);
     
@@ -127,6 +150,10 @@ function [trajectory] = buildTrajectory(value_map, start_row, start_column, goal
     end
     
     trajectory = finalizeTrajectoryWithGoal(trajectory, neighborList);
+    
+    display('Building Trajectory Finished:');
+    
+    toc;
     
 end
 
@@ -229,6 +256,10 @@ function [neighborList] = getAvailable8NeighborList(value_map, x, y)
 end
 
 function [isReachedGoal] = isReachedGoal(neighborList, goalValue)
+
+    if isempty(neighborList)
+        error('NO SOLUTION FOUND :(');
+    end
     
     neighborListSorted = sortrows(neighborList, 3);
     
@@ -272,7 +303,7 @@ function [neighborX, neighborY, robotDirection] = pickNextOptimalNeighbor(neighb
         return;
     else
         % robotDirection: STRAIGHT: 0, DIAGONAL: 1
-        if robotDirection % IF ROBOT WAS MOVING DIAGONAL ALSO CHECK EUCLEDIAN BETWEEN CANDIDATES
+        if 0 % if robotDirection % IF ROBOT WAS MOVING DIAGONAL ALSO CHECK EUCLEDIAN BETWEEN CANDIDATES
             candidateNeighborList = neighborListSorted(candidateNeighborX, :);
             candidateCount = size(candidateNeighborX);
             euclideanDistance = double.empty(0, 1);
