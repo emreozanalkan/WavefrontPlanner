@@ -118,7 +118,7 @@ function [trajectory] = buildTrajectory(value_map, start_row, start_column, goal
     
     while ~isReachedGoal(neighborList, goalValue)
         
-        [neighborX, neighborY, robotDirection] = pickNextOptimalNeighbor(neighborList, robotDirection);
+        [neighborX, neighborY, robotDirection] = pickNextOptimalNeighbor(neighborList, robotDirection, goalX, goalY);
         
         trajectory = [trajectory; [neighborX, neighborY]];
         
@@ -244,14 +244,59 @@ function [trajectory] = finalizeTrajectoryWithGoal(trajectory, neighborList)
     
 end
 
-function [neighborX, neighborY, robotDirection] = pickNextOptimalNeighbor(neighborList, robotDirection)
+function [neighborX, neighborY, robotDirection] = pickNextOptimalNeighbor(neighborList, robotDirection, goalX, goalY)
 
-    neighborX = 0;
-    neighborY = 0;
-    robotDirection = 0;
+    if isempty(neighborList)
+        error('NO SOLUTION FOUND :(');
+    end
+    
+    neighborListSize = size(neighborList);
+    
+    if neighborListSize(1) == 1
+        neighborX = neighborList(1, 1);
+        neighborY = neighborList(1, 2);
+        robotDirection = neighborList(1, 4);
+        return;
+    end
+    
+    neighborListSorted = sortrows(neighborList, 3);
+    
+    optimalNeighborValue = neighborListSorted(1, 3);
+    
+    [candidateNeighborX, ~] = find(neighborListSorted == optimalNeighborValue);
+    
+    if size(candidateNeighborX) == 1
+        neighborX = neighborListSorted(1, 1);
+        neighborY = neighborListSorted(1, 2);
+        robotDirection = neighborListSorted(1, 4);
+        return;
+    else
+        % robotDirection: STRAIGHT: 0, DIAGONAL: 1
+        if robotDirection % IF ROBOT WAS MOVING DIAGONAL ALSO CHECK EUCLEDIAN BETWEEN CANDIDATES
+            candidateNeighborList = neighborListSorted(candidateNeighborX, :);
+            candidateCount = size(candidateNeighborX);
+            euclideanDistance = double.empty(0, 1);
+            
+            for ii = 1 : candidateCount(1)
+                candidateX = candidateNeighborList(ii, 1);
+                candidateY = candidateNeighborList(ii, 2);
+                % euclideanDistance = sqrt((goalX - candidateX) ^ 2 + (goalY - candidateY) ^ 2);
+                euclideanDistance(ii, 1) = pdist2([candidateX candidateY], [goalX goalY], 'euclidean');
+            end
+            
+            minDistanceIndex = find(euclideanDistance == min(euclideanDistance));
+            
+            neighborX = candidateNeighborList(minDistanceIndex, 1);
+            neighborY = candidateNeighborList(minDistanceIndex, 2);
+            robotDirection = candidateNeighborList(minDistanceIndex, 4);
+        else
+            candidateNeighborList = neighborListSorted(candidateNeighborX, :);
+            candidateNeighborListSortedByAdjacency = sortrows(candidateNeighborList, 4);
+            neighborX = candidateNeighborListSortedByAdjacency(1, 1);
+            neighborY = candidateNeighborListSortedByAdjacency(1, 2);
+            robotDirection = candidateNeighborListSortedByAdjacency(1, 4);
+            return;
+        end
+    end
     
 end
-
-
-
-
