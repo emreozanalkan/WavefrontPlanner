@@ -14,7 +14,7 @@
 slprj/
 
 # Matlab .mat files
-*.mat
+#*.mat
 
 # Latex Report
 *.aux
