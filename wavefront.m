@@ -11,7 +11,7 @@ function [value_map, trajectory] = wavefront(map, start_row, start_column)
 end
 
 
-%%% BUILDING WAVE FRONT MAP FUNCTIONS
+%%% BUILD WAVEFRONT VALUE MAP FUNCTIONS
 
 function value_map = buildValueMap(map, goalValue)
 
@@ -50,16 +50,16 @@ end
 
 function [changedMap] = add4NeighborToList(neighborList, x, y, currentValue, map)
     
-    %left neighbor
+    % left neighbor
     map = addNeighborToList(neighborList, x - 1, y, currentValue, map);
     
-    %top neighbor
+    % top neighbor
     map = addNeighborToList(neighborList, x, y + 1, currentValue, map);
     
-    %right neighbor
+    % right neighbor
     map = addNeighborToList(neighborList, x + 1, y, currentValue, map);
     
-    %bottom neighbor
+    % bottom neighbor
     map = addNeighborToList(neighborList, x, y - 1, currentValue, map);
     
     changedMap = map;
@@ -70,16 +70,16 @@ function [changedMap] = add8NeighborToList(neighborList, x, y, currentValue, map
 
     map = add4NeighborToList(neighborList, x, y, currentValue, map);
 
-    % left top neighbor
+    % top left neighbor
     map = addNeighborToList(neighborList, x - 1, y + 1, currentValue, map);
     
-    % right top neighbor
+    % top right neighbor
     map = addNeighborToList(neighborList, x + 1, y + 1, currentValue, map);
     
-    % right bottom neighbor
+    % bottom right neighbor
     map = addNeighborToList(neighborList, x + 1, y - 1, currentValue, map);
     
-    % left bottom neighbor
+    % bottom left neighbor
     map = addNeighborToList(neighborList, x - 1, y - 1, currentValue, map);
     
     changedMap = map;
@@ -109,16 +109,140 @@ function [changedMap] = addNeighborToList(neighborList, neighborX, neighborY, cu
 
 end
 
-%%% BUILDING TRAJECTORY FUNCTIONS
+
+%%% BUILD TRAJECTORY FUNCTIONS
 
 function [trajectory] = buildTrajectory(value_map, start_row, start_column, goalValue)
     
     [goalX, goalY] = findValueMapGoalPosition(value_map, goalValue);
     
-    trajectory = [start_row start_column];
+    robotCurrentMomentumDirection = 0; % STRAIGHT: 0, DIAGONAL: 1
+    
+    trajectory = [start_row start_column]; % sortrows(matrix, column);
+    
+    neighborList = getAvailable8NeighborList(value_map, start_row, start_column); % init starting
+    
+    if isReachedGoal(neighborList, goalValue)
+        trajectory = finalizeTrajectory(trajectory, neighborList);
+        return;
+    end
+    
+    
+    
     
     
     
 end
+
+function [neighborList] = getAvailable4NeighborList(value_map, x, y)
+
+	neighborList = double.empty(0, 0);
+
+    currentValue = value_map(x, y);
+    
+    %left neighbor
+    leftNeighbor = {x - 1, y};
+    leftNeighborValue = value_map(leftNeighbor{1}, leftNeighbor{2});
+    
+    if leftNeighborValue > 1 && leftNeighborValue < currentValue
+        neighborList = [neighborList; [leftNeighbor{1} leftNeighbor{2} leftNeighborValue 0]]; % STRAIGHT: 0, DIAGONAL: 1
+    end
+    
+    %top neighbor
+    topNeighbor = {x, y + 1};
+    topNeighborValue = value_map(topNeighbor{1}, topNeighbor{2});
+    
+    if topNeighborValue > 1 && topNeighborValue < currentValue
+        neighborList = [neighborList; [topNeighbor{1} topNeighbor{2} topNeighborValue 0]]; % STRAIGHT: 0, DIAGONAL: 1
+    end
+    
+    %right neighbor
+    rightNeighbor = {x + 1, y};
+    rightNeighborValue = value_map(rightNeighbor{1}, rightNeighbor{2});
+    
+    if rightNeighborValue > 1 && rightNeighborValue < currentValue
+        neighborList = [neighborList; [rightNeighbor{1} rightNeighbor{2} rightNeighborValue 0]]; % STRAIGHT: 0, DIAGONAL: 1
+    end
+    
+    %bottom neighbor
+    bottomNeighbor = {x + 1, y};
+    bottomNeighborValue = value_map(bottomNeighbor{1}, bottomNeighbor{2});
+    
+    if bottomNeighborValue > 1 && bottomNeighborValue < currentValue
+        neighborList = [neighborList; [bottomNeighbor{1} bottomNeighbor{2} bottomNeighborValue 0]]; % STRAIGHT: 0, DIAGONAL: 1
+    end    
+    
+end
+
+function [neighborList] = getAvailable8NeighborList(value_map, x, y)
+
+    neighborList = getAvailable4NeighborList(value_map, x, y);
+    
+    currentValue = value_map(x, y);
+    
+    % top left neighbor
+    topLeftNeighbor = {x - 1, y + 1};
+    topLeftNeighborValue = value_map(topLeftNeighbor{1}, topLeftNeighbor{2});
+    
+    if topLeftNeighborValue > 1 && topLeftNeighborValue < currentValue
+        neighborList = [neighborList; [topLeftNeighbor{1} topLeftNeighbor{2} topLeftNeighborValue 1]]; % STRAIGHT: 0, DIAGONAL: 1
+    end
+    
+    % top right neighbor
+    topRightNeighbor = {x + 1, y + 1};
+    topRightNeighborValue = value_map(topRightNeighbor{1}, topRightNeighbor{2});
+    
+    if topRightNeighborValue > 1 && topRightNeighborValue < currentValue
+        neighborList = [neighborList; [topRightNeighbor{1} topRightNeighbor{2} topRightNeighborValue 1]]; % STRAIGHT: 0, DIAGONAL: 1
+    end
+    
+    % bottom right neighbor
+    bottomRightNeighbor = {x + 1, y - 1};
+    bottomRightNeighborValue = value_map(bottomRightNeighbor{1}, bottomRightNeighbor{2});
+    
+    if bottomRightNeighborValue > 1 && bottomRightNeighborValue < currentValue
+        neighborList = [neighborList; [bottomRightNeighbor{1} bottomRightNeighbor{2} bottomRightNeighborValue 1]]; % STRAIGHT: 0, DIAGONAL: 1
+    end
+    
+    % bottom left neighbor
+    bottomLeftNeighbor = {x - 1, y - 1};
+    bottomLeftNeighborValue = value_map(bottomLeftNeighbor{1}, bottomLeftNeighbor{2});
+    
+    if bottomLeftNeighborValue > 1 && bottomLeftNeighborValue < currentValue
+        neighborList = [neighborList; [bottomLeftNeighbor{1} bottomLeftNeighbor{2} bottomLeftNeighborValue 1]]; % STRAIGHT: 0, DIAGONAL: 1
+    end
+
+end
+
+function [isReachedGoal] = isReachedGoal(neighborList, goalValue)
+    isReachedGoal = 0; % 0: FALSE, 1: TRUE
+    
+    neighborListSorted = sortrows(neighborList, 3);
+    
+    
+end
+
+function [trajectory] = finalizeTrajectory(trajectory, neighborList)
+    trajectory = zeros;
+end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
