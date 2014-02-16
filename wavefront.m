@@ -304,7 +304,7 @@ function [neighborX, neighborY, robotDirection] = pickNextOptimalNeighbor(neighb
     else
         % robotDirection: STRAIGHT: 0, DIAGONAL: 1
         % TURNED OFF ROBOT DIRECTION CHECKING - FAILING ON BIG MAPS
-        if robotDirection % if robotDirection % IF ROBOT WAS MOVING DIAGONAL ALSO CHECK EUCLEDIAN BETWEEN CANDIDATES
+        if 0 % if robotDirection % IF ROBOT WAS MOVING DIAGONAL ALSO CHECK EUCLEDIAN BETWEEN CANDIDATES
             candidateNeighborList = neighborListSorted(candidateNeighborX, :);
             candidateCount = size(candidateNeighborX);
             euclideanDistance = double.empty(0, 1);
