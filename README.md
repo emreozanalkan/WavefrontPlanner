@@ -8,6 +8,8 @@ Autonomous Robotics Lab
 
 [Lab Paper](P2-Potential_Functions.pdf)
 
+[My Report](Report/WavefrontPlannerReport.pdf)
+
 Authors
 =======
 - **Emre Ozan Alkan**
