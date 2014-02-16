@@ -16,7 +16,7 @@ function displayWavefront(map, trajectory)
     
     map = mat2gray(map);
     
-    [tr ~] = size(trajectory);
+    [tr, ~] = size(trajectory);
     
     for ii = 1 : tr
         map(trajectory(ii, 1), trajectory(ii, 2)) = 2;
@@ -303,7 +303,8 @@ function [neighborX, neighborY, robotDirection] = pickNextOptimalNeighbor(neighb
         return;
     else
         % robotDirection: STRAIGHT: 0, DIAGONAL: 1
-        if 0 % if robotDirection % IF ROBOT WAS MOVING DIAGONAL ALSO CHECK EUCLEDIAN BETWEEN CANDIDATES
+        % TURNED OFF ROBOT DIRECTION CHECKING - FAILING ON BIG MAPS
+        if robotDirection % if robotDirection % IF ROBOT WAS MOVING DIAGONAL ALSO CHECK EUCLEDIAN BETWEEN CANDIDATES
             candidateNeighborList = neighborListSorted(candidateNeighborX, :);
             candidateCount = size(candidateNeighborX);
             euclideanDistance = double.empty(0, 1);
